@@ -177,9 +177,12 @@
     display: flex;
     align-items: center;
     gap: 14px;
+    transition: background 0.12s;
   }
 
   .part-item:first-of-type { border-top: 1px solid var(--border); }
+  .part-item.clickable { cursor: pointer; }
+  .part-item.clickable:hover { background: #f9f8f5; }
 
   .part-indicator {
     width: 6px;
@@ -318,10 +321,10 @@
 
   <div class="parts-label">Parts</div>
 
-  <div class="part-item">
+  <div class="part-item" id="item0" data-url="https://shop.addictiverc.com/products/deepspace-seeker3-3-inch-freestyle-fpv-drone-dc-o4-pro-4s-with-elrs-gps">
     <div class="part-indicator" id="dot0"></div>
     <div class="part-body">
-      <div class="part-name"><a href="https://shop.addictiverc.com/products/deepspace-seeker3-3-inch-freestyle-fpv-drone-dc-o4-pro-4s-with-elrs-gps" target="_blank">Deepspace Seeker 3</a></div>
+      <div class="part-name">Deepspace Seeker 3</div>
       <div class="part-desc">AddictiveRC · 3" · DJI O4 Pro 4S · ELRS · GPS</div>
     </div>
     <div class="part-right">
@@ -330,10 +333,10 @@
     </div>
   </div>
 
-  <div class="part-item">
+  <div class="part-item" id="item1" data-url="https://a.co/d/0azPFr6D">
     <div class="part-indicator" id="dot1"></div>
     <div class="part-body">
-      <div class="part-name"><a href="https://a.co/d/0azPFr6D" target="_blank">Battery Pack</a></div>
+      <div class="part-name">Battery Pack</div>
       <div class="part-desc">Amazon · 4S LiPo</div>
     </div>
     <div class="part-right">
@@ -342,10 +345,10 @@
     </div>
   </div>
 
-  <div class="part-item">
+  <div class="part-item" id="item2" data-url="https://a.co/d/0e46KEzd">
     <div class="part-indicator" id="dot2"></div>
     <div class="part-body">
-      <div class="part-name"><a href="https://a.co/d/0e46KEzd" target="_blank">Barry Charger</a></div>
+      <div class="part-name">Barry Charger</div>
       <div class="part-desc">Amazon · LiPo Balance Charger</div>
     </div>
     <div class="part-right">
@@ -387,6 +390,12 @@
       const tag = document.getElementById('tag' + i);
       tag.className = 'part-tag' + (funded ? ' funded' : '');
       tag.textContent = funded ? 'Funded' : 'Pending';
+      const item = document.getElementById('item' + i);
+      if (funded) {
+        item.classList.add('clickable');
+      } else {
+        item.classList.remove('clickable');
+      }
     });
 
     document.getElementById('doneBar').className = 'done-bar' + (saved >= GOAL ? ' show' : '');
@@ -402,6 +411,15 @@
   }
 
   render();
+  // Click to open link when funded
+  document.querySelectorAll('.part-item[data-url]').forEach(el => {
+    el.addEventListener('click', () => {
+      if (el.classList.contains('clickable')) {
+        window.open(el.dataset.url, '_blank');
+      }
+    });
+  });
+
 </script>
 </body>
 </html>
