@@ -1,233 +1,407 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>rwib.cc</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,700;0,9..144,900;1,9..144,300;1,9..144,700&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet" />
-  <style>
-    :root {
-      --bg: #f2ede6;
-      --ink: #111009;
-      --mid: #7a7060;
-      --accent: #d4420a;
-      --border: #ddd6cc;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Seeker 3 — Savings</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f5f4f0;
+    --surface: #ffffff;
+    --border: #e4e3df;
+    --text: #0f0f0d;
+    --muted: #9e9d98;
+    --progress: #0f0f0d;
+    --funded: #2a6648;
+    --funded-bg: #edf4f0;
+  }
 
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
 
-    html, body { height: 100%; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 48px 20px 80px;
+  }
 
-    body {
-      background: var(--bg);
-      color: var(--ink);
-      font-family: 'DM Mono', monospace;
-      display: flex;
-      flex-direction: column;
-      min-height: 100vh;
-    }
+  .container {
+    width: 100%;
+    max-width: 440px;
+  }
 
-    /* ── NAV ── */
-    nav {
-      padding: 28px 48px;
-      display: flex;
-      align-items: baseline;
-      justify-content: space-between;
-      border-bottom: 1px solid var(--border);
-    }
+  header { margin-bottom: 40px; }
 
-    .wordmark {
-      font-family: 'Fraunces', serif;
-      font-weight: 900;
-      font-size: 17px;
-      color: var(--ink);
-      text-decoration: none;
-      letter-spacing: -0.01em;
-    }
+  .label-small {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
 
-    .wordmark em {
-      font-style: italic;
-      font-weight: 300;
-      color: var(--mid);
-      font-size: 13px;
-      margin-left: 10px;
-    }
+  h1 {
+    font-size: 36px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.05;
+  }
 
-    .nav-links {
-      display: flex;
-      gap: 28px;
-      list-style: none;
-    }
+  h1 .dim { color: var(--muted); font-weight: 400; }
 
-    .nav-links a {
-      font-size: 11px;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: var(--mid);
-      text-decoration: none;
-      transition: color 0.15s;
-    }
+  .progress-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 28px;
+    margin-bottom: 12px;
+  }
 
-    .nav-links a:hover { color: var(--accent); }
+  .amount-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
 
-    /* ── HERO ── */
-    main {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      padding: 80px 48px;
-      max-width: 960px;
-    }
+  .saved-num {
+    font-size: 56px;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1;
+    transition: all 0.2s;
+  }
 
-    .eyebrow {
-      font-size: 11px;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      color: var(--mid);
-      margin-bottom: 32px;
-      opacity: 0;
-      animation: in 0.5s ease 0.05s forwards;
-    }
+  .goal-of {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    color: var(--muted);
+    text-align: right;
+    line-height: 1.5;
+  }
 
-    h1 {
-      font-family: 'Fraunces', serif;
-      font-weight: 900;
-      font-size: clamp(52px, 9vw, 108px);
-      line-height: 0.95;
-      letter-spacing: -0.03em;
-      color: var(--ink);
-      margin-bottom: 40px;
-      opacity: 0;
-      animation: in 0.6s ease 0.15s forwards;
-    }
+  .goal-of span {
+    display: block;
+    font-size: 18px;
+    color: var(--text);
+    font-weight: 400;
+  }
 
-    h1 em {
-      font-style: italic;
-      font-weight: 300;
-      color: var(--mid);
-    }
+  .bar-track {
+    width: 100%;
+    height: 3px;
+    background: var(--border);
+    overflow: hidden;
+  }
 
-    h1 .hot { color: var(--accent); }
+  .bar-fill {
+    height: 100%;
+    background: var(--progress);
+    width: 0%;
+    transition: width 0.5s cubic-bezier(0.4,0,0.2,1);
+  }
 
-    .desc {
-      font-size: 15px;
-      color: var(--mid);
-      line-height: 1.7;
-      max-width: 440px;
-      margin-bottom: 52px;
-      font-weight: 300;
-      opacity: 0;
-      animation: in 0.6s ease 0.25s forwards;
-    }
+  .bar-meta {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+  }
 
-    .links {
-      display: flex;
-      align-items: center;
-      gap: 24px;
-      opacity: 0;
-      animation: in 0.6s ease 0.35s forwards;
-      flex-wrap: wrap;
-    }
+  .bar-pct,
+  .bar-remaining {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+  }
 
-    .btn-primary {
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      background: var(--ink);
-      color: var(--bg);
-      text-decoration: none;
-      font-size: 12px;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      padding: 13px 24px;
-      border-radius: 2px;
-      transition: background 0.15s, color 0.15s;
-    }
+  .controls {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
 
-    .btn-primary:hover {
-      background: var(--accent);
-    }
+  .btn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    padding: 18px 0;
+    cursor: pointer;
+    transition: background 0.12s, border-color 0.12s, transform 0.1s;
+    user-select: none;
+  }
 
-    .btn-primary svg { flex-shrink: 0; }
+  .btn:active { transform: scale(0.98); }
 
-    .btn-ghost {
-      font-size: 12px;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: var(--mid);
-      text-decoration: none;
-      border-bottom: 1px solid var(--border);
-      padding-bottom: 2px;
-      transition: color 0.15s, border-color 0.15s;
-    }
+  .btn-add {
+    background: var(--text);
+    border-color: var(--text);
+    color: var(--bg);
+  }
 
-    .btn-ghost:hover {
-      color: var(--ink);
-      border-color: var(--ink);
-    }
+  .btn-add:hover { background: #2d2d2a; }
+  .btn-sub:hover { background: #efede9; }
 
-    /* ── FOOTER ── */
-    footer {
-      border-top: 1px solid var(--border);
-      padding: 22px 48px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 10px;
-    }
+  .btn-sub:disabled {
+    opacity: 0.28;
+    cursor: not-allowed;
+    transform: none;
+  }
 
-    footer p {
-      font-size: 11px;
-      color: var(--mid);
-      letter-spacing: 0.06em;
-    }
+  .parts-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    margin-top: 28px;
+  }
 
-    @keyframes in {
-      from { opacity: 0; transform: translateY(12px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
+  .part-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-top: none;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
 
-    @media (max-width: 600px) {
-      nav { padding: 20px 24px; }
-      nav .wordmark em { display: none; }
-      main { padding: 60px 24px; }
-      footer { padding: 18px 24px; }
-    }
-  </style>
+  .part-item:first-of-type { border-top: 1px solid var(--border); }
+
+  .part-indicator {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--border);
+    flex-shrink: 0;
+    transition: background 0.4s;
+  }
+
+  .part-indicator.funded { background: var(--funded); }
+
+  .part-body { flex: 1; min-width: 0; }
+
+  .part-name {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  .part-name a {
+    color: inherit;
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    transition: border-color 0.2s;
+  }
+
+  .part-name a:hover { border-color: var(--text); }
+
+  .part-desc {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  .part-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+
+  .part-cost {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+  }
+
+  .part-tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 2px 7px;
+    color: var(--muted);
+    background: var(--bg);
+    border: 1px solid var(--border);
+    transition: all 0.3s;
+  }
+
+  .part-tag.funded {
+    color: var(--funded);
+    background: var(--funded-bg);
+    border-color: transparent;
+  }
+
+  .done-bar {
+    display: none;
+    margin-top: 12px;
+    background: var(--funded-bg);
+    border: 1px solid #c4ddd4;
+    padding: 16px 20px;
+    animation: fadeUp 0.4s ease;
+  }
+
+  .done-bar.show { display: block; }
+
+  .done-bar p {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--funded);
+    letter-spacing: -0.01em;
+  }
+
+  .done-sub {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: #5a9e82;
+    margin-top: 2px;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes bump {
+    0%   { transform: scale(1); }
+    40%  { transform: scale(1.04); }
+    100% { transform: scale(1); }
+  }
+
+  .bump { animation: bump 0.22s ease; }
+</style>
 </head>
 <body>
+<div class="container">
 
-  <nav>
-    <a href="/" class="wordmark">rwib.cc <em>Random Website I Bought</em></a>
-    <ul class="nav-links">
-      <li><a href="https://github.com/gtrtrger53y" target="_blank" rel="noopener">GitHub</a></li>
-      <li><a href="contact.html">Contact</a></li>
-    </ul>
-  </nav>
+  <header>
+    <div class="label-small">Build Goal</div>
+    <h1>Deepspace<br><span class="dim">Seeker 3</span></h1>
+  </header>
 
-  <main>
-    <p class="eyebrow">// est. whenever</p>
-    <h1>Just a<br /><em>random</em><br /><span class="hot">website.</span></h1>
-    <p class="desc">Bought the domain. Did stuff with it. Here we are.</p>
-    <div class="links">
-      <a href="https://github.com/gtrtrger53y" class="btn-primary" target="_blank" rel="noopener">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
-        </svg>
-        GitHub
-      </a>
-      <a href="contact.html" class="btn-ghost">Contact →</a>
+  <div class="progress-section">
+    <div class="amount-row">
+      <div class="saved-num" id="savedDisplay">$0</div>
+      <div class="goal-of">
+        Goal<br>
+        <span>$765</span>
+      </div>
     </div>
-  </main>
+    <div class="bar-track">
+      <div class="bar-fill" id="barFill"></div>
+    </div>
+    <div class="bar-meta">
+      <div class="bar-pct" id="pctDisplay">0%</div>
+      <div class="bar-remaining" id="remainDisplay">$765 remaining</div>
+    </div>
+  </div>
 
-  <footer>
-    <p>rwib.cc</p>
-    <p>Cloudflare Pages</p>
-  </footer>
+  <div class="controls">
+    <button class="btn btn-add" onclick="adjust(10)">+ $10</button>
+    <button class="btn btn-sub" id="subBtn" onclick="adjust(-10)" disabled>− $10</button>
+  </div>
 
+  <div class="parts-label">Parts</div>
+
+  <div class="part-item">
+    <div class="part-indicator" id="dot0"></div>
+    <div class="part-body">
+      <div class="part-name"><a href="https://shop.addictiverc.com/products/deepspace-seeker3-3-inch-freestyle-fpv-drone-dc-o4-pro-4s-with-elrs-gps" target="_blank">Deepspace Seeker 3</a></div>
+      <div class="part-desc">AddictiveRC · 3" · DJI O4 Pro 4S · ELRS · GPS</div>
+    </div>
+    <div class="part-right">
+      <div class="part-cost">$610</div>
+      <div class="part-tag" id="tag0">Pending</div>
+    </div>
+  </div>
+
+  <div class="part-item">
+    <div class="part-indicator" id="dot1"></div>
+    <div class="part-body">
+      <div class="part-name"><a href="https://a.co/d/0azPFr6D" target="_blank">Battery Pack</a></div>
+      <div class="part-desc">Amazon · 4S LiPo</div>
+    </div>
+    <div class="part-right">
+      <div class="part-cost">$70</div>
+      <div class="part-tag" id="tag1">Pending</div>
+    </div>
+  </div>
+
+  <div class="part-item">
+    <div class="part-indicator" id="dot2"></div>
+    <div class="part-body">
+      <div class="part-name"><a href="https://a.co/d/0e46KEzd" target="_blank">Barry Charger</a></div>
+      <div class="part-desc">Amazon · LiPo Balance Charger</div>
+    </div>
+    <div class="part-right">
+      <div class="part-cost">$85</div>
+      <div class="part-tag" id="tag2">Pending</div>
+    </div>
+  </div>
+
+  <div class="done-bar" id="doneBar">
+    <p>Goal reached.</p>
+    <div class="done-sub">Time to order.</div>
+  </div>
+
+</div>
+
+<script>
+  const GOAL = 765;
+  const THRESHOLDS = [610, 680, 765];
+
+  let saved = parseInt(localStorage.getItem('seeker3_saved') || '0', 10);
+
+  function render() {
+    saved = Math.max(0, Math.min(saved, GOAL));
+    localStorage.setItem('seeker3_saved', saved);
+
+    const pct = saved / GOAL;
+    const remaining = GOAL - saved;
+
+    document.getElementById('savedDisplay').textContent = '$' + saved;
+    document.getElementById('pctDisplay').textContent = Math.round(pct * 100) + '%';
+    document.getElementById('remainDisplay').textContent =
+      remaining > 0 ? '$' + remaining + ' remaining' : 'Complete';
+    document.getElementById('barFill').style.width = (pct * 100) + '%';
+    document.getElementById('subBtn').disabled = saved <= 0;
+
+    THRESHOLDS.forEach((t, i) => {
+      const funded = saved >= t;
+      document.getElementById('dot' + i).className = 'part-indicator' + (funded ? ' funded' : '');
+      const tag = document.getElementById('tag' + i);
+      tag.className = 'part-tag' + (funded ? ' funded' : '');
+      tag.textContent = funded ? 'Funded' : 'Pending';
+    });
+
+    document.getElementById('doneBar').className = 'done-bar' + (saved >= GOAL ? ' show' : '');
+  }
+
+  function adjust(delta) {
+    saved += delta;
+    render();
+    const el = document.getElementById('savedDisplay');
+    el.classList.remove('bump');
+    void el.offsetWidth;
+    el.classList.add('bump');
+  }
+
+  render();
+</script>
 </body>
 </html>
