@@ -761,8 +761,8 @@
     const pct       = combined / GOAL;
     const remaining = GOAL - combined;
 
-    // Main display
-    document.getElementById('savedDisplay').textContent = '$' + saved;
+    // Main display — show saved + loans combined
+    document.getElementById('savedDisplay').textContent = '$' + combined;
     document.getElementById('pctDisplay').textContent   = Math.round(pct * 100) + '%';
     document.getElementById('remainDisplay').textContent =
       remaining > 0 ? '$' + remaining + ' remaining' : 'Complete';
@@ -860,6 +860,8 @@
   function adjust(delta) {
     if (!startDate && delta > 0) startDate = new Date().toISOString();
     saved += delta;
+    saved = Math.max(0, Math.min(saved, GOAL));
+    localStorage.setItem('s3_saved', saved);
     render();
     const el = document.getElementById('savedDisplay');
     el.classList.remove('bump');
@@ -879,6 +881,9 @@
       amount: amt
     });
     input.value = '';
+    // Write to localStorage immediately so it persists even without Worker
+    localStorage.setItem('s3_loans', JSON.stringify(loans));
+    if (startDate) localStorage.setItem('s3_start', startDate);
     render();
     saveToServer();
   }
