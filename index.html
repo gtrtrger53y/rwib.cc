@@ -6,20 +6,20 @@
 <title>Seeker 3 — Savings</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;600;700;800&family=Barlow+Condensed:wght@700;800&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #f5f4f0;
-    --surface: #ffffff;
-    --border: #e4e3df;
-    --text: #0f0f0d;
-    --muted: #9e9d98;
-    --progress: #0f0f0d;
-    --loan-color: #7c6af7;
-    --loan-bg: #f0effe;
-    --loan-border: #c9c3f9;
-    --funded: #2a6648;
-    --funded-bg: #edf4f0;
+    --bg: #141414;
+    --surface: #1c1c1c;
+    --border: #2a2a2a;
+    --text: #e2ddd4;
+    --muted: #545450;
+    --progress: #c8b98a;
+    --loan-color: #e0903a;
+    --loan-bg: #201910;
+    --loan-border: #3a2710;
+    --funded: #7ab87a;
+    --funded-bg: #111a11;
     --sidebar-w: 300px;
   }
 
@@ -28,7 +28,7 @@
   body {
     background: var(--bg);
     color: var(--text);
-    font-family: 'Syne', sans-serif;
+    font-family: 'Barlow', sans-serif;
     min-height: 100vh;
     overflow-x: hidden;
   }
@@ -197,7 +197,7 @@
     background: var(--text);
     border: none;
     color: var(--bg);
-    font-family: 'Syne', sans-serif;
+    font-family: 'Barlow', sans-serif;
     font-size: 12px;
     font-weight: 700;
     padding: 10px 14px;
@@ -207,7 +207,7 @@
     white-space: nowrap;
   }
 
-  .sb-btn:hover { background: #2d2d2a; }
+  .sb-btn:hover { background: #383830; }
 
   .loan-list { display: flex; flex-direction: column; gap: 6px; }
 
@@ -298,10 +298,12 @@
   }
 
   h1 {
-    font-size: 36px;
+    font-size: 40px;
     font-weight: 800;
-    letter-spacing: -0.02em;
-    line-height: 1.05;
+    font-family: 'Barlow Condensed', sans-serif;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    line-height: 1.0;
   }
 
   h1 .dim { color: var(--muted); font-weight: 400; }
@@ -309,6 +311,7 @@
   .progress-section {
     background: var(--surface);
     border: 1px solid var(--border);
+    border-top: 2px solid var(--progress);
     padding: 28px;
     margin-bottom: 12px;
   }
@@ -390,7 +393,7 @@
     background: var(--surface);
     border: 1px solid var(--border);
     color: var(--text);
-    font-family: 'Syne', sans-serif;
+    font-family: 'Barlow', sans-serif;
     font-size: 15px;
     font-weight: 600;
     letter-spacing: -0.01em;
@@ -403,8 +406,8 @@
 
   .btn:active { transform: scale(0.98); }
   .btn-add { background: var(--text); border-color: var(--text); color: var(--bg); }
-  .btn-add:hover { background: #2d2d2a; }
-  .btn-sub:hover { background: #efede9; }
+  .btn-add:hover { background: #383830; }
+  .btn-sub:hover { background: #242424; }
   .btn-sub:disabled { opacity: 0.28; cursor: not-allowed; transform: none; }
 
   .parts-label {
@@ -434,7 +437,7 @@
   .part-item:first-of-type,
   #loanPartItem { border-top: 1px solid var(--border); }
 
-  .part-item:hover { background: #f9f8f5; }
+  .part-item:hover { background: #222222; }
 
   .part-indicator {
     width: 6px;
@@ -500,7 +503,7 @@
     display: none;
     margin-top: 12px;
     background: var(--funded-bg);
-    border: 1px solid #c4ddd4;
+    border: 1px solid #1e3a2a;
     padding: 16px 20px;
     animation: fadeUp 0.4s ease;
   }
@@ -508,7 +511,7 @@
   .done-bar.show { display: block; }
 
   .done-bar p { font-size: 13px; font-weight: 600; color: var(--funded); letter-spacing: -0.01em; }
-  .done-sub { font-family: 'DM Mono', monospace; font-size: 10px; color: #5a9e82; margin-top: 2px; }
+  .done-sub { font-family: 'DM Mono', monospace; font-size: 10px; color: #5a9e6a; margin-top: 2px; }
 
   /* Sync status */
   .sync-status {
@@ -550,6 +553,14 @@
     <!-- Pace tracker -->
     <div class="sb-section">
       <div class="sb-section-title">Savings Pace</div>
+      <div class="pace-row">
+        <div class="pace-label">To finish Jun 12</div>
+        <div class="pace-val" id="paceDeadline">—</div>
+      </div>
+      <div class="pace-row" id="pacePaybackRow" style="display:none">
+        <div class="pace-label">+ Loan payback</div>
+        <div class="pace-val" id="pacePayback">—</div>
+      </div>
       <div class="pace-row">
         <div class="pace-label">Avg / day</div>
         <div class="pace-val" id="paceDay">—</div>
@@ -807,20 +818,46 @@
   }
 
   function renderPace() {
+    const msPerDay  = 86400000;
+    const loanTotal = loans.reduce((s, l) => s + l.amount, 0);
+    const combined  = Math.min(saved + loanTotal, GOAL);
+    const stillNeed = Math.max(0, GOAL - combined);
+
+    // Days until June 12 2026
+    const deadline    = new Date('2026-06-12T23:59:59');
+    const daysToDeadline = Math.max(1, (deadline - Date.now()) / msPerDay);
+    const neededPerDay   = stillNeed > 0 ? (stillNeed / daysToDeadline).toFixed(2) : '0.00';
+    const deadlineEl = document.getElementById('paceDeadline');
+    if (deadlineEl) {
+      deadlineEl.textContent = stillNeed > 0 ? '$' + neededPerDay + '/day' : 'Done';
+      deadlineEl.className   = 'pace-val' + (stillNeed <= 0 ? ' dim' : '');
+    }
+
+    // Loan payback row — total needed per day including paying back the loan
+    const paybackRow = document.getElementById('pacePaybackRow');
+    const paybackEl  = document.getElementById('pacePayback');
+    if (loanTotal > 0) {
+      const totalWithPayback = stillNeed + loanTotal;
+      const perDayWithPayback = (totalWithPayback / daysToDeadline).toFixed(2);
+      paybackRow.style.display = '';
+      paybackEl.textContent = '$' + perDayWithPayback + '/day';
+    } else {
+      paybackRow.style.display = 'none';
+    }
+
     if (!startDate || saved === 0) {
       ['paceDay','paceWeek','paceFinish','paceSince'].forEach(id => {
-        document.getElementById(id).textContent = '—';
+        const el = document.getElementById(id);
+        if (el) el.textContent = '—';
       });
       return;
     }
-    const msPerDay = 86400000;
-    const days = Math.max(1, (Date.now() - new Date(startDate).getTime()) / msPerDay);
+
+    const days    = Math.max(1, (Date.now() - new Date(startDate).getTime()) / msPerDay);
     const perDay  = saved / days;
     const perWeek = perDay * 7;
-    const loanTotal = loans.reduce((s, l) => s + l.amount, 0);
-    const stillNeed = Math.max(0, GOAL - saved - loanTotal);
-    const daysLeft  = stillNeed > 0 ? Math.ceil(stillNeed / perDay) : 0;
-    const finish    = daysLeft > 0
+    const daysLeft = perDay > 0 && stillNeed > 0 ? Math.ceil(stillNeed / perDay) : 0;
+    const finish   = daysLeft > 0
       ? new Date(Date.now() + daysLeft * msPerDay).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
       : 'Done';
 
