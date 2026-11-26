@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Seeker 3 — Savings</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;600;700;800&family=Barlow+Condensed:wght@700;800&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #141414;
+    --surface: #1c1c1c;
+    --border: #2a2a2a;
+    --text: #e2ddd4;
+    --muted: #545450;
+    --progress: #c8b98a;
+    --loan-color: #e0903a;
+    --loan-bg: #201910;
+    --loan-border: #3a2710;
+    --funded: #7ab87a;
+    --funded-bg: #111a11;
+    --sidebar-w: 300px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Barlow', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Layout */
+  .page {
+    display: flex;
+    min-height: 100vh;
+    transition: transform 0.35s cubic-bezier(0.4,0,0.2,1);
+  }
+
+  .page.sidebar-open .main {
+    transform: translateX(var(--sidebar-w));
+  }
+
+  .main {
+    flex: 1;
+    padding: 48px 20px 80px;
+    display: flex;
+    justify-content: center;
+    transition: transform 0.35s cubic-bezier(0.4,0,0.2,1);
+    position: relative;
+    z-index: 1;
+    background: var(--bg);
+    min-height: 100vh;
+  }
+
+  .container { width: 100%; max-width: 440px; }
+
+  /* Sidebar toggle button */
+  .sidebar-btn {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 100;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    width: 38px;
+    height: 38px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    transition: background 0.12s, transform 0.35s cubic-bezier(0.4,0,0.2,1);
+    touch-action: manipulation;
+  }
+
+  .sidebar-open .sidebar-btn {
+    transform: translateX(var(--sidebar-w));
+    background: var(--bg);
+  }
+
+  .sidebar-btn span {
+    display: block;
+    width: 16px;
+    height: 1.5px;
+    background: var(--text);
+    transition: all 0.25s;
+  }
+
+  .sidebar-open .sidebar-btn span:nth-child(1) {
+    transform: translateY(6.5px) rotate(45deg);
+  }
+  .sidebar-open .sidebar-btn span:nth-child(2) { opacity: 0; }
+  .sidebar-open .sidebar-btn span:nth-child(3) {
+    transform: translateY(-6.5px) rotate(-45deg);
+  }
+
+  /* Sidebar */
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: var(--sidebar-w);
+    height: 100vh;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    transform: translateX(calc(-1 * var(--sidebar-w)));
+    transition: transform 0.35s cubic-bezier(0.4,0,0.2,1);
+    z-index: 50;
+    overflow-y: auto;
+    padding: 28px 24px 48px;
+  }
+
+  .sidebar-open .sidebar {
+    transform: translateX(0);
+  }
+
+  .sidebar-heading {
+    font-size: 11px;
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 0.18em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* Sidebar sections */
+  .sb-section {
+    margin-bottom: 28px;
+  }
+
+  .sb-section-title {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin-bottom: 12px;
+  }
+
+  /* Pace tracker */
+  .pace-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 9px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .pace-row:last-child { border-bottom: none; }
+
+  .pace-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  .pace-val {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--text);
+  }
+
+  .pace-val.dim { color: var(--muted); }
+
+  /* Loan section */
+  .loan-input-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .sb-input {
+    flex: 1;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    color: var(--text);
+    padding: 10px 12px;
+    outline: none;
+    transition: border-color 0.15s;
+    -webkit-appearance: none;
+  }
+
+  .sb-input:focus { border-color: var(--text); }
+  .sb-input::placeholder { color: var(--muted); }
+
+  .sb-btn {
+    background: var(--text);
+    border: none;
+    color: var(--bg);
+    font-family: 'Barlow', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 10px 14px;
+    cursor: pointer;
+    touch-action: manipulation;
+    transition: background 0.12s;
+    white-space: nowrap;
+  }
+
+  .sb-btn:hover { background: #383830; }
+
+  .loan-list { display: flex; flex-direction: column; gap: 6px; }
+
+  .loan-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--loan-bg);
+    border: 1px solid var(--loan-border);
+    padding: 9px 12px;
+  }
+
+  .loan-item-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--loan-color);
+    font-weight: 400;
+  }
+
+  .loan-item-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .loan-item-amt {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--loan-color);
+  }
+
+  .loan-remove {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 1;
+    padding: 0 2px;
+    touch-action: manipulation;
+    transition: color 0.12s;
+  }
+
+  .loan-remove:hover { color: #c0392b; }
+
+  .loan-total-row {
+    display: flex;
+    justify-content: space-between;
+    padding-top: 10px;
+    margin-top: 4px;
+    border-top: 1px solid var(--loan-border);
+  }
+
+  .loan-total-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  .loan-total-val {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--loan-color);
+  }
+
+  /* Overlay for closing sidebar */
+  .overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    display: none;
+  }
+
+  .sidebar-open .overlay { display: block; }
+
+  /* --- MAIN CONTENT --- */
+  header { margin-bottom: 40px; padding-right: 48px; }
+
+  .label-small {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  h1 {
+    font-size: 40px;
+    font-weight: 800;
+    font-family: 'Barlow Condensed', sans-serif;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    line-height: 1.0;
+  }
+
+  h1 .dim { color: var(--muted); font-weight: 400; }
+
+  .progress-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-top: 2px solid var(--progress);
+    padding: 28px;
+    margin-bottom: 12px;
+  }
+
+  .amount-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+
+  .saved-num {
+    font-size: 56px;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1;
+  }
+
+  .goal-of {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    color: var(--muted);
+    text-align: right;
+    line-height: 1.5;
+  }
+
+  .goal-of span {
+    display: block;
+    font-size: 18px;
+    color: var(--text);
+  }
+
+  /* Segmented progress bar */
+  .bar-track {
+    width: 100%;
+    height: 3px;
+    background: var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .bar-fill-saved {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    background: var(--progress);
+    transition: width 0.5s cubic-bezier(0.4,0,0.2,1);
+  }
+
+  .bar-fill-loan {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    background: var(--loan-color);
+    transition: left 0.5s cubic-bezier(0.4,0,0.2,1), width 0.5s cubic-bezier(0.4,0,0.2,1);
+  }
+
+  .bar-meta {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+  }
+
+  .bar-pct, .bar-remaining {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  .controls {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .btn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'Barlow', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    padding: 18px 0;
+    cursor: pointer;
+    transition: background 0.12s, transform 0.1s;
+    user-select: none;
+    touch-action: manipulation;
+  }
+
+  .btn:active { transform: scale(0.98); }
+  .btn-add { background: var(--text); border-color: var(--text); color: var(--bg); }
+  .btn-add:hover { background: #383830; }
+  .btn-sub:hover { background: #242424; }
+  .btn-sub:disabled { opacity: 0.28; cursor: not-allowed; transform: none; }
+
+  .parts-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    margin-top: 28px;
+  }
+
+  .part-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-top: none;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    cursor: pointer;
+    touch-action: manipulation;
+    transition: background 0.12s;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .part-item:first-of-type,
+  #loanPartItem { border-top: 1px solid var(--border); }
+
+  .part-item:hover { background: #222222; }
+
+  .part-indicator {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--border);
+    flex-shrink: 0;
+    transition: background 0.4s;
+  }
+
+  .part-indicator.funded { background: var(--funded); }
+  .part-indicator.loan { background: var(--loan-color); }
+
+  .part-body { flex: 1; min-width: 0; }
+
+  .part-name {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  .part-desc {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  .part-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+
+  .part-cost { font-family: 'DM Mono', monospace; font-size: 13px; }
+
+  .part-tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 2px 7px;
+    color: var(--muted);
+    background: var(--bg);
+    border: 1px solid var(--border);
+    transition: all 0.3s;
+  }
+
+  .part-tag.funded { color: var(--funded); background: var(--funded-bg); border-color: transparent; }
+  .part-tag.loan-tag { color: var(--loan-color); background: var(--loan-bg); border-color: transparent; }
+
+  /* Loan part row */
+  #loanPartItem {
+    display: none;
+    margin-top: 28px;
+  }
+
+  #loanPartItem.visible { display: flex; }
+
+  .done-bar {
+    display: none;
+    margin-top: 12px;
+    background: var(--funded-bg);
+    border: 1px solid #1e3a2a;
+    padding: 16px 20px;
+    animation: fadeUp 0.4s ease;
+  }
+
+  .done-bar.show { display: block; }
+
+  .done-bar p { font-size: 13px; font-weight: 600; color: var(--funded); letter-spacing: -0.01em; }
+  .done-sub { font-family: 'DM Mono', monospace; font-size: 10px; color: #5a9e6a; margin-top: 2px; }
+
+  /* Sync status */
+  .sync-status {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    color: var(--muted);
+    text-transform: uppercase;
+    text-align: center;
+    margin-top: 24px;
+    opacity: 0.7;
+    transition: opacity 0.3s;
+  }
+
+  .sync-status.syncing { color: #7c6af7; opacity: 1; }
+  .sync-status.error { color: #c0392b; opacity: 1; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes bump {
+    0%   { transform: scale(1); }
+    40%  { transform: scale(1.04); }
+    100% { transform: scale(1); }
+  }
+
+  .bump { animation: bump 0.22s ease; }
+</style>
+</head>
+<body>
+
+<div class="page" id="page">
+  <!-- Sidebar -->
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-heading">Tools</div>
+
+    <!-- Pace tracker -->
+    <div class="sb-section">
+      <div class="sb-section-title">Savings Pace</div>
+      <div class="pace-row">
+        <div class="pace-label">To finish Jun 12</div>
+        <div class="pace-val" id="paceDeadline">—</div>
+      </div>
+      <div class="pace-row" id="pacePaybackRow" style="display:none">
+        <div class="pace-label">+ Loan payback</div>
+        <div class="pace-val" id="pacePayback">—</div>
+      </div>
+      <div class="pace-row">
+        <div class="pace-label">Avg / day</div>
+        <div class="pace-val" id="paceDay">—</div>
+      </div>
+      <div class="pace-row">
+        <div class="pace-label">Avg / week</div>
+        <div class="pace-val" id="paceWeek">—</div>
+      </div>
+      <div class="pace-row">
+        <div class="pace-label">Est. finish</div>
+        <div class="pace-val" id="paceFinish">—</div>
+      </div>
+      <div class="pace-row">
+        <div class="pace-label">Tracking since</div>
+        <div class="pace-val dim" id="paceSince">—</div>
+      </div>
+    </div>
+
+    <!-- Loan section -->
+    <div class="sb-section">
+      <div class="sb-section-title">Loans</div>
+      <div class="loan-input-row">
+        <input class="sb-input" id="loanInput" type="number" min="1" max="765" placeholder="Amount ($)" />
+        <button class="sb-btn" onclick="addLoan()">Add</button>
+      </div>
+      <div class="loan-list" id="loanList"></div>
+      <div class="loan-total-row" id="loanTotalRow" style="display:none">
+        <div class="loan-total-label">Total loans</div>
+        <div class="loan-total-val" id="loanTotal">$0</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Overlay to close sidebar -->
+  <div class="overlay" id="overlay" onclick="closeSidebar()"></div>
+
+  <!-- Sidebar toggle -->
+  <button class="sidebar-btn" id="sidebarBtn" onclick="toggleSidebar()">
+    <span></span><span></span><span></span>
+  </button>
+
+  <!-- Main -->
+  <div class="main">
+    <div class="container">
+
+      <header>
+        <div class="label-small">Build Goal</div>
+        <h1>Deepspace<br><span class="dim">Seeker 3</span></h1>
+      </header>
+
+      <div class="progress-section">
+        <div class="amount-row">
+          <div class="saved-num" id="savedDisplay">$0</div>
+          <div class="goal-of">
+            Goal<br>
+            <span>$765</span>
+          </div>
+        </div>
+        <div class="bar-track">
+          <div class="bar-fill-saved" id="barSaved" style="width:0%"></div>
+          <div class="bar-fill-loan" id="barLoan" style="left:0%;width:0%"></div>
+        </div>
+        <div class="bar-meta">
+          <div class="bar-pct" id="pctDisplay">0%</div>
+          <div class="bar-remaining" id="remainDisplay">$765 remaining</div>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button class="btn btn-add" onclick="adjust(10)">+ $10</button>
+        <button class="btn btn-sub" id="subBtn" onclick="adjust(-10)" disabled>− $10</button>
+      </div>
+
+      <div class="label-small">Parts</div>
+
+      <div class="part-item" id="item0" data-url="https://shop.addictiverc.com/products/deepspace-seeker3-3-inch-freestyle-fpv-drone-dc-o4-pro-4s-with-elrs-gps" onclick="openLink(this)">
+        <div class="part-indicator" id="dot0"></div>
+        <div class="part-body">
+          <div class="part-name">Deepspace Seeker 3</div>
+          <div class="part-desc">AddictiveRC · 3" · DJI O4 Pro 4S · ELRS · GPS</div>
+        </div>
+        <div class="part-right">
+          <div class="part-cost">$610</div>
+          <div class="part-tag" id="tag0">Pending</div>
+        </div>
+      </div>
+
+      <div class="part-item" id="item1" data-url="https://a.co/d/0azPFr6D" onclick="openLink(this)">
+        <div class="part-indicator" id="dot1"></div>
+        <div class="part-body">
+          <div class="part-name">Battery Pack</div>
+          <div class="part-desc">Amazon · 4S LiPo</div>
+        </div>
+        <div class="part-right">
+          <div class="part-cost">$70</div>
+          <div class="part-tag" id="tag1">Pending</div>
+        </div>
+      </div>
+
+      <div class="part-item" id="item2" data-url="https://a.co/d/0e46KEzd" onclick="openLink(this)">
+        <div class="part-indicator" id="dot2"></div>
+        <div class="part-body">
+          <div class="part-name">Barry Charger</div>
+          <div class="part-desc">Amazon · LiPo Balance Charger</div>
+        </div>
+        <div class="part-right">
+          <div class="part-cost">$85</div>
+          <div class="part-tag" id="tag2">Pending</div>
+        </div>
+      </div>
+
+      <!-- Loan part row (shown when loans exist) -->
+      <div class="part-item" id="loanPartItem">
+        <div class="part-indicator loan"></div>
+        <div class="part-body">
+          <div class="part-name">Loans</div>
+          <div class="part-desc" id="loanPartDesc">—</div>
+        </div>
+        <div class="part-right">
+          <div class="part-cost" id="loanPartAmt">$0</div>
+          <div class="part-tag loan-tag">Loan</div>
+        </div>
+      </div>
+
+      <div class="done-bar" id="doneBar">
+        <p>Goal reached.</p>
+        <div class="done-sub">Time to order.</div>
+      </div>
+
+      <div class="sync-status" id="syncStatus">Syncing...</div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+  // ── CONFIG ─────────────────────────────────────────────
+  // Replace with your Worker URL after deploying
+  const WORKER_URL = 'https://drone-savings.YOUR-SUBDOMAIN.workers.dev';
+  const GOAL = 765;
+  const THRESHOLDS = [610, 680, 765];
+
+  // ── STATE ──────────────────────────────────────────────
+  let saved = 0;
+  let loans = [];       // [{id, label, amount}]
+  let startDate = null; // ISO string, first day saving
+
+  // ── SYNC ───────────────────────────────────────────────
+  let syncTimer = null;
+
+  function setSyncStatus(state, msg) {
+    const el = document.getElementById('syncStatus');
+    el.className = 'sync-status' + (state ? ' ' + state : '');
+    el.textContent = msg;
+  }
+
+  async function loadFromServer() {
+    try {
+      const r = await fetch(WORKER_URL + '/get');
+      if (!r.ok) throw new Error();
+      const data = await r.json();
+      saved     = data.saved     ?? 0;
+      loans     = data.loans     ?? [];
+      startDate = data.startDate ?? null;
+      if (!startDate && saved > 0) {
+        startDate = new Date().toISOString();
+        saveToServer();
+      }
+      render();
+      setSyncStatus('', 'Synced');
+    } catch {
+      // Fall back to localStorage
+      saved     = parseInt(localStorage.getItem('s3_saved')  || '0', 10);
+      loans     = JSON.parse(localStorage.getItem('s3_loans')  || '[]');
+      startDate = localStorage.getItem('s3_start') || null;
+      render();
+      setSyncStatus('error', 'Offline — using local data');
+    }
+  }
+
+  async function saveToServer() {
+    clearTimeout(syncTimer);
+    setSyncStatus('syncing', 'Saving...');
+    syncTimer = setTimeout(async () => {
+      // Always write to localStorage as backup
+      localStorage.setItem('s3_saved',  saved);
+      localStorage.setItem('s3_loans',  JSON.stringify(loans));
+      if (startDate) localStorage.setItem('s3_start', startDate);
+      try {
+        const r = await fetch(WORKER_URL + '/set', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ saved, loans, startDate })
+        });
+        if (!r.ok) throw new Error();
+        setSyncStatus('', 'Synced');
+      } catch {
+        setSyncStatus('error', 'Sync failed — saved locally');
+      }
+    }, 600);
+  }
+
+  // ── RENDER ─────────────────────────────────────────────
+  function render() {
+    saved = Math.max(0, Math.min(saved, GOAL));
+
+    const loanTotal = loans.reduce((s, l) => s + l.amount, 0);
+    const combined  = Math.min(saved + loanTotal, GOAL);
+    const pct       = combined / GOAL;
+    const remaining = GOAL - combined;
+
+    // Main display — show saved + loans combined
+    document.getElementById('savedDisplay').textContent = '$' + combined;
+    document.getElementById('pctDisplay').textContent   = Math.round(pct * 100) + '%';
+    document.getElementById('remainDisplay').textContent =
+      remaining > 0 ? '$' + remaining + ' remaining' : 'Complete';
+
+    // Segmented bar
+    const savedPct = (saved / GOAL) * 100;
+    const loanPct  = (Math.min(loanTotal, GOAL - saved) / GOAL) * 100;
+    document.getElementById('barSaved').style.width = savedPct + '%';
+    document.getElementById('barLoan').style.left   = savedPct + '%';
+    document.getElementById('barLoan').style.width  = loanPct  + '%';
+
+    // Sub button
+    document.getElementById('subBtn').disabled = saved <= 0;
+
+    // Parts
+    THRESHOLDS.forEach((t, i) => {
+      const funded = saved >= t;
+      document.getElementById('dot' + i).className = 'part-indicator' + (funded ? ' funded' : '');
+      const tag = document.getElementById('tag' + i);
+      tag.className = 'part-tag' + (funded ? ' funded' : '');
+      tag.textContent = funded ? 'Funded' : 'Pending';
+    });
+
+    // Loan part row
+    const loanRow = document.getElementById('loanPartItem');
+    if (loanTotal > 0) {
+      loanRow.className = 'part-item visible';
+      document.getElementById('loanPartAmt').textContent  = '$' + loanTotal;
+      document.getElementById('loanPartDesc').textContent =
+        loans.length === 1 ? loans[0].label : loans.length + ' loans';
+    } else {
+      loanRow.className = 'part-item';
+    }
+
+    // Done
+    document.getElementById('doneBar').className =
+      'done-bar' + (combined >= GOAL ? ' show' : '');
+
+    // Pace
+    renderPace();
+    renderLoanList();
+  }
+
+  function renderPace() {
+    const msPerDay  = 86400000;
+    const loanTotal = loans.reduce((s, l) => s + l.amount, 0);
+    const combined  = Math.min(saved + loanTotal, GOAL);
+    const stillNeed = Math.max(0, GOAL - combined);
+
+    // Days until June 12 2026
+    const deadline    = new Date('2026-06-12T23:59:59');
+    const daysToDeadline = Math.max(1, (deadline - Date.now()) / msPerDay);
+    const neededPerDay   = stillNeed > 0 ? (stillNeed / daysToDeadline).toFixed(2) : '0.00';
+    const deadlineEl = document.getElementById('paceDeadline');
+    if (deadlineEl) {
+      deadlineEl.textContent = stillNeed > 0 ? '$' + neededPerDay + '/day' : 'Done';
+      deadlineEl.className   = 'pace-val' + (stillNeed <= 0 ? ' dim' : '');
+    }
+
+    // Loan payback row — total needed per day including paying back the loan
+    const paybackRow = document.getElementById('pacePaybackRow');
+    const paybackEl  = document.getElementById('pacePayback');
+    if (loanTotal > 0) {
+      const totalWithPayback = stillNeed + loanTotal;
+      const perDayWithPayback = (totalWithPayback / daysToDeadline).toFixed(2);
+      paybackRow.style.display = '';
+      paybackEl.textContent = '$' + perDayWithPayback + '/day';
+    } else {
+      paybackRow.style.display = 'none';
+    }
+
+    if (!startDate || saved === 0) {
+      ['paceDay','paceWeek','paceFinish','paceSince'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = '—';
+      });
+      return;
+    }
+
+    const days    = Math.max(1, (Date.now() - new Date(startDate).getTime()) / msPerDay);
+    const perDay  = saved / days;
+    const perWeek = perDay * 7;
+    const daysLeft = perDay > 0 && stillNeed > 0 ? Math.ceil(stillNeed / perDay) : 0;
+    const finish   = daysLeft > 0
+      ? new Date(Date.now() + daysLeft * msPerDay).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+      : 'Done';
+
+    document.getElementById('paceDay').textContent    = '$' + perDay.toFixed(2);
+    document.getElementById('paceWeek').textContent   = '$' + perWeek.toFixed(2);
+    document.getElementById('paceFinish').textContent = finish;
+    document.getElementById('paceSince').textContent  =
+      new Date(startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  }
+
+  function renderLoanList() {
+    const list = document.getElementById('loanList');
+    const total = loans.reduce((s, l) => s + l.amount, 0);
+    list.innerHTML = loans.map(l => `
+      <div class="loan-item">
+        <div class="loan-item-label">${escHtml(l.label)}</div>
+        <div class="loan-item-right">
+          <div class="loan-item-amt">$${l.amount}</div>
+          <button class="loan-remove" onclick="removeLoan('${l.id}')" title="Remove">×</button>
+        </div>
+      </div>
+    `).join('');
+    const row = document.getElementById('loanTotalRow');
+    if (loans.length > 1) {
+      row.style.display = 'flex';
+      document.getElementById('loanTotal').textContent = '$' + total;
+    } else {
+      row.style.display = 'none';
+    }
+  }
+
+  function escHtml(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  // ── ACTIONS ────────────────────────────────────────────
+  function adjust(delta) {
+    if (!startDate && delta > 0) startDate = new Date().toISOString();
+    saved += delta;
+    saved = Math.max(0, Math.min(saved, GOAL));
+    localStorage.setItem('s3_saved', saved);
+    render();
+    const el = document.getElementById('savedDisplay');
+    el.classList.remove('bump');
+    void el.offsetWidth;
+    el.classList.add('bump');
+    saveToServer();
+  }
+
+  function addLoan() {
+    const input = document.getElementById('loanInput');
+    const amt   = parseInt(input.value, 10);
+    if (!amt || amt < 1) return;
+    if (!startDate) startDate = new Date().toISOString();
+    loans.push({
+      id: Date.now().toString(),
+      label: 'Loan (' + new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ')',
+      amount: amt
+    });
+    input.value = '';
+    // Write to localStorage immediately so it persists even without Worker
+    localStorage.setItem('s3_loans', JSON.stringify(loans));
+    if (startDate) localStorage.setItem('s3_start', startDate);
+    render();
+    saveToServer();
+  }
+
+  function removeLoan(id) {
+    loans = loans.filter(l => l.id !== id);
+    render();
+    saveToServer();
+  }
+
+  function openLink(el) { window.open(el.dataset.url, '_blank'); }
+
+  // Allow Enter key in loan input
+  document.getElementById('loanInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') addLoan();
+  });
+
+  // ── SIDEBAR ────────────────────────────────────────────
+  function toggleSidebar() {
+    document.getElementById('page').classList.toggle('sidebar-open');
+  }
+  function closeSidebar() {
+    document.getElementById('page').classList.remove('sidebar-open');
+  }
+
+  // ── INIT ───────────────────────────────────────────────
+  loadFromServer();
+</script>
+</body>
+</html>
